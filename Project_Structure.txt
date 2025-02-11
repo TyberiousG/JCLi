@@ -1,0 +1,46 @@
+JCLi/
+├── Interpreter/
+│   ├── __init__.py
+│   ├── main.py               # Entry point for the interpreter
+│   ├── parser.py             # Handles parsing of JCL-like syntax
+│   ├── validator.py          # Validates syntax and job definitions
+│   └── job_definition.py     # Represents job objects and their properties
+├── Daemon/
+│   ├── __init__.py
+│   ├── daemon.py             # Core daemon to manage the job queue
+│   ├── scheduler.py          # Handles job scheduling based on priorities
+│   ├── priority_manager.py   # Manages fixed priority classes (A, B, C)
+│   └── job_lifecycle.py      # Manages job states: QUEUED, RUNNING, COMPLETED, FAILED
+├── Executor/
+│   ├── __init__.py
+│   ├── executor.py           # Executes jobs
+│   ├── shell_executor.py     # Executes shell scripts
+│   ├── binary_executor.py    # Executes binary files
+│   └── container_executor.py # Handles container-based workloads
+├── ControlInterface/
+│   ├── __init__.py
+│   ├── cli.py                # Dedicated CLI environment
+│   ├── command_handler.py    # Parses and executes CLI commands
+│   └── interactive_shell.py  # Provides the interactive shell interface
+├── Logging/
+│   ├── __init__.py
+│   ├── logger.py             # Central logging module
+│   ├── job_logger.py         # Handles job-specific logs (similar to SYSOUT)
+│   └── event_logger.py       # Logs system events, errors, and warnings
+├── Utils/
+│   ├── __init__.py
+│   ├── config.py             # Configuration management
+│   ├── helpers.py            # General utility functions
+│   └── file_manager.py       # Handles file I/O for logs, job scripts, etc.
+├── Jobs/
+│   ├── job_queue.json        # (Optional) Persistent job queue storage
+│   └── job_history.json      # (Optional) Job history for completed jobs
+├── Tests/
+│   ├── __init__.py
+│   ├── test_interpreter.py   # Tests for the interpreter
+│   ├── test_daemon.py        # Tests for the daemon and scheduling logic
+│   ├── test_executor.py      # Tests for job execution modules
+│   └── test_cli.py           # Tests for the control interface
+├── README.md                 # Project overview and instructions
+├── requirements.txt          # Python dependencies
+└── setup.py                  # For packaging if needed
