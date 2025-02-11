@@ -1,0 +1,5 @@
+//DATAPROC JOB CLASS=C,PRTY=6,USER=datauser
+//STEP1    EXEC PGM=/usr/bin/echo,ARGS='Extracting data...'
+//STEP2    EXEC PGM=/usr/bin/echo,ARGS='Transforming data...'
+//STEP3    EXEC PGM=/usr/bin/echo,ARGS='Loading data into database...'
+//OUTPUT   DD SYSOUT=C

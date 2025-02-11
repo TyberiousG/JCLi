@@ -1,0 +1,3 @@
+//BACKUP   JOB CLASS=A,PRTY=3,USER=root
+//STEP1    EXEC PGM=/bin/tar,ARGS='-czf /tmp/backup.tar.gz /etc'
+//OUTPUT   DD SYSOUT=A

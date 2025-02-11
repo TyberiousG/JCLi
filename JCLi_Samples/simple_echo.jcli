@@ -1,0 +1,3 @@
+//ECHOJOB  JOB CLASS=A,PRTY=5,USER=admin
+//STEP1    EXEC PGM=/usr/bin/echo,ARGS='Hello, JCLi World!'
+//OUTPUT   DD SYSOUT=A

@@ -1,0 +1,5 @@
+//MULTISTEP JOB CLASS=B,PRTY=4,USER=admin
+//STEP1    EXEC PGM=/usr/bin/echo,ARGS='Step 1: Initializing Process'
+//STEP2    EXEC PGM=/usr/bin/echo,ARGS='Step 2: Processing Data'
+//STEP3    EXEC PGM=/usr/bin/echo,ARGS='Step 3: Finalizing Job'
+//OUTPUT   DD SYSOUT=B

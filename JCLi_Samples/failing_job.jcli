@@ -1,0 +1,3 @@
+//FAILJOB  JOB CLASS=B,PRTY=5,USER=admin
+//STEP1    EXEC PGM=/bin/false,ARGS=''
+//OUTPUT   DD SYSOUT=B
