@@ -107,8 +107,8 @@ A JCLi script consists of three main sections:
 
 To release:
 ```bash
-JCLi> QUEUE
-Queue> RELEASE HOLDJOB
+$JCLC> QUEUE
+$JCLQ> RELEASE HOLDJOB
 ```
 
 ---
@@ -122,12 +122,12 @@ Queue> RELEASE HOLDJOB
 
 2. **Submit the job:**
    ```bash
-   JCLi> SUBMIT my_job.jcli
+   $JCLC> SUBMIT my_job.jcli
    ```
 
 3. **Check job status:**
    ```bash
-   JCLi> STATUS
+   $JCLC> STATUS
    ```
 
 4. **View logs:**
