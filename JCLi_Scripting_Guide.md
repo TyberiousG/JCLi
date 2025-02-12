@@ -52,7 +52,7 @@ A JCLi script consists of three main sections:
 - `//STEP1` → **Step Name** (each job can have multiple steps).
 - `EXEC` → Command to execute a program.
 - `PGM=` → Program path to execute.
-- `ARGS=` → Arguments for the program.
+- `ARGS=` → Arguments/Parameters for the program.
 
 ### 3️⃣ **DD Statement (Output Handling)**
 
@@ -144,7 +144,7 @@ Within the **Queue Menu:**
 - `R JOBNAME` → Restart a job
 - `C JOBNAME` → Cancel a job
 - `F JOBNAME` → Force a job to run immediately
-- `RELEASE JOBNAME` → Release a held job
+- `RL JOBNAME` → Release a held job
 - `EXIT` → Return to the main menu
 
 ---
@@ -156,7 +156,7 @@ Within the **Queue Menu:**
 | `Validation Error: Missing JOB` | Missing `JOB` statement        | Add a proper `JOB` declaration.    |
 | `Unknown command`              | Typo in the command            | Check for spelling mistakes.       |
 | `Job not found`                | Invalid job name               | Verify job name exists in the queue. |
-| `Job is held`                  | Class H job not released       | Use `RELEASE JOBNAME` to continue. |
+| `Job is held`                  | Class H job not released       | Use `RL JOBNAME` to continue. |
 
 ---
 
