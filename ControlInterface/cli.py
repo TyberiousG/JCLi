@@ -10,8 +10,8 @@ class JCLiControlInterface:
         """
         Starts the JCLi Control Interface.
         """
-        print("[JCLi Control Interface] Welcome to JCLi!")
-        print("Type 'HELP' to see available commands.")
+        print("$JCLC Welcome to JCLi!")
+        print("Enter 'HELP' to see available commands.")
         self.shell.run()
 
 if __name__ == "__main__":

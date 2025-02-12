@@ -15,7 +15,7 @@ class JobLifecycle:
             status (str): New status ('QUEUED', 'RUNNING', 'COMPLETED', 'FAILED').
         """
         self.job_status[job.name] = status
-        print(f"[Lifecycle] Job '{job.name}' status updated to: {status}")
+        print(f"$JCLL Job '{job.name}' status updated to: {status}")
         self.logger.log_job_status(job.name, status)
 
     def execute_job(self, job):
@@ -26,7 +26,7 @@ class JobLifecycle:
             job: The job object to execute.
         """
         try:
-            print(f"[Lifecycle] Executing job '{job.name}'...")
+            print(f"$JCLL Executing job '{job.name}'...")
             result = subprocess.run(
                 [job.program] + job.arguments.split(),
                 stdout=subprocess.PIPE,
@@ -41,8 +41,8 @@ class JobLifecycle:
                 self.update_status(job, "COMPLETED")
             else:
                 self.update_status(job, "FAILED")
-                print(f"[Lifecycle] Job '{job.name}' failed with return code {result.returncode}")
+                print(f"$JCLL Job '{job.name}' failed with return code {result.returncode}")
         except Exception as e:
             self.update_status(job, "FAILED")
             self.logger.log_job_output(job.name, "", f"Execution error: {str(e)}")
-            print(f"[Lifecycle] Error executing job '{job.name}': {e}")
+            print(f"$JCLL Error executing job '{job.name}': {e}")

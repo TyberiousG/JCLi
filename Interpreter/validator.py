@@ -10,8 +10,8 @@ class JCLValidator:
             errors.append("Job name is missing.")
 
         # Validate job class
-        if job.job_class not in ['A', 'B', 'C']:
-            errors.append(f"Invalid job class '{job.job_class}'. Must be A, B, or C.")
+        if job.job_class not in ['A', 'B', 'C', 'H']:
+            errors.append(f"Invalid job class '{job.job_class}'. Must be A, B, C, or H.")
 
         # Validate priority
         if not isinstance(job.priority, int) or not (1 <= job.priority <= 10):

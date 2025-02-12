@@ -8,11 +8,11 @@ class InteractiveShell:
         """
         while self.command_handler.is_running:
             try:
-                user_input = input("JCLi> ").strip()
+                user_input = input("$JCLC ").strip()
                 if user_input:
                     self.command_handler.handle_command(user_input)
             except (KeyboardInterrupt, EOFError):
-                print("\n[InteractiveShell] Exiting JCLi Control Interface.")
+                print("\n$JCLS Exiting JCLi Control Interface.")
                 self.command_handler.is_running = False
             except Exception as e:
-                print(f"[InteractiveShell] Error: {e}")
+                print(f"$JCLS Error: {e}")
