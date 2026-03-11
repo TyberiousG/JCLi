@@ -1,126 +1,108 @@
+# JCLi
 
-# JCLi - Job Control for Linux 🚀
-*A lightweight, Linux-based job control subsystem inspired by IBM’s JCL.*
+JCLi is a Linux batch/job-control system inspired by IBM JCL. Jobs are submitted as `JOB` / `EXEC` / `DD` scripts, persisted in SQLite, dispatched by a restart-safe daemon, and executed with per-step logs and status tracking.
 
-## 📜 Overview
+## What Changed
 
-**JCLi** is an open-source job control system designed to manage batch jobs on Linux systems. Inspired by IBM's Job Control Language (JCL), JCLi provides a flexible, file-driven approach to job submission, execution, and monitoring. It’s ideal for automation enthusiasts, sysadmins, and developers looking to experiment with lightweight job scheduling.
+The original repository had a promising modular layout but most runtime behavior lived in thin in-memory classes. This refactor keeps the mainframe-inspired surface area while moving the real control plane into a clean Python package:
 
-## 🚀 Features
+- `jcli.cli`: non-interactive control plane commands
+- `jcli.parser`: lexical parsing plus structured validation errors
+- `jcli.store`: SQLite-backed job, step, event, and daemon state
+- `jcli.scheduler`: priority plus FIFO scheduling with concurrency limits
+- `jcli.executor`: per-step subprocess execution and log capture
+- `jcli.daemon`: PID-safe daemon loop with restart recovery
 
-- ✅ **File-Based Job Submission** (JCL-style scripts)  
-- ✅ **Priority-Based Job Scheduling** (like z/OS priority classes)  
-- ✅ **Modular Architecture** (Interpreter, Daemon, Executor)  
-- ✅ **Job Status Tracking & Logging** (output and event logs)  
-- ✅ **Simple Command-Line Interface (CLI)**  
-- ✅ **Customizable & Extensible for Advanced Use Cases**
+The legacy `main.py` and `ControlInterface/cli.py` entry points now route into the new package.
 
-## 📂 Project Structure
-
-```
-JCLi/
-├── ControlInterface/   # CLI and command handling
-├── Daemon/             # Job scheduler and lifecycle manager
-├── Executor/           # Executes shell scripts, binaries, and containers
-├── Interpreter/        # Parses and validates JCLi scripts
-├── Logging/            # Job and system event logging
-└── logs/               # Output logs and job status tracking
-```
-
-## ⚡ Getting Started
-
-### 1️⃣ Prerequisites
-
-- **OS:** Linux  
-- **Python:** 3.6+  
-- **Dependencies:** None (pure Python)
-
-### 2️⃣ Installation
+## Installation
 
 ```bash
-git clone https://github.com/yourusername/JCLi.git
-cd JCLi
-python -m ControlInterface.cli
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+pip install -r requirements-dev.txt
 ```
 
-## 📝 JCLi Script Example
+## Quick Start
+
+1. Start the daemon:
+
+```bash
+jcli start
+```
+
+2. Submit a job:
+
+```bash
+jcli submit JCLi_Samples/simple_echo.jcli
+```
+
+3. Inspect queue state:
+
+```bash
+jcli status
+jcli show-job 1
+```
+
+4. Inspect logs:
+
+```bash
+jcli show-logs 1
+jcli show-logs 1 --step STEP1 --stream stdout
+```
+
+5. Control jobs:
+
+```bash
+jcli hold 1
+jcli release 1
+jcli cancel 1
+jcli stop
+```
+
+## Example Script
 
 ```jcl
-//MYJOB   JOB CLASS=A,PRTY=5,USER=admin
-//STEP1   EXEC PGM=/usr/bin/echo,ARGS='Hello from JCLi!'
+//PAYROLL JOB CLASS=A,PRTY=2,USER=batch
+//EXTRACT EXEC PGM=/usr/bin/python3,ARGS='/opt/jcli/jobs/extract.py'
+//REPORT  EXEC PGM=/usr/bin/python3,ARGS='/opt/jcli/jobs/report.py --format pdf'
 //OUTPUT  DD SYSOUT=A
 ```
 
-- `JOB` - Defines the job, user, and priority.  
-- `EXEC` - Executes the specified program with arguments.  
-- `DD` - Handles output logging.
+Scheduling rules:
 
-## 🚀 How to Submit a Job
+- Lower class rank runs first: `A` before `B` before `C`
+- Lower numeric `PRTY` runs first within a class
+- Jobs with equal class and priority run FIFO
+- `CLASS=H` submits the job in `HELD`
 
-1. **Save your script:**
+## State and Logs
 
-```bash
-nano my_first_job.jcli
-```
+By default JCLi stores runtime state under `.jcli/` in the current working directory:
 
-2. **Run the JCLi CLI:**
+- `.jcli/jcli.db`: persistent SQLite store
+- `.jcli/daemon.pid`: daemon PID lock
+- `.jcli/logs/system/system.log`: operator/system log
+- `.jcli/logs/system/errors.log`: error log
+- `.jcli/logs/jobs/<job>.log`: job lifecycle log
+- `.jcli/logs/steps/<step>_stdout.log`: step stdout
+- `.jcli/logs/steps/<step>_stderr.log`: step stderr
 
-```bash
-python -m ControlInterface.cli
-```
+Set `JCLI_HOME` or pass `--state-dir` to relocate the state directory.
 
-3. **Submit the job:**
+## Development
 
-```bash
-JCLi> SUBMIT my_first_job.jcli
-```
-
-4. **Check job status:**
-
-```bash
-JCLi> STATUS
-```
-
-5. **View logs:**
+Run the built-in test suite:
 
 ```bash
-cat logs/jobs/MYJOB_output.log
+python -m unittest discover -s tests -v
 ```
 
-## ⚙️ Command Reference
+Linting is configured in [`pyproject.toml`](/Users/ty/Documents/GitHub/JCLi/pyproject.toml).
 
-| **Command**        | **Description**                          |
-|--------------------|------------------------------------------|
-| `START`            | Starts the JCLi Daemon                   |
-| `STOP`             | Stops the JCLi Daemon                    |
-| `SUBMIT <file>`    | Submits a JCLi script for execution      |
-| `STATUS`           | Shows the status of all submitted jobs   |
-| `HELP`             | Displays help information               |
-| `EXIT`             | Exits the JCLi CLI                       |
+## Docs
 
-## 📊 Logging
-
-- **Job Output:** `logs/jobs/<job_name>_output.log`  
-- **Job Status:** `logs/jobs/<job_name>_status.log`  
-- **System Events:** `logs/system/events.log`  
-- **Error Logs:** `logs/system/errors.log`  
-
-## 🧩 Contributing
-
-We welcome contributions! Whether it's fixing bugs, adding new features, or improving documentation, your help is appreciated.
-
-1. **Fork the repo**  
-2. **Create a new branch:** `git checkout -b feature/new-feature`  
-3. **Commit your changes:** `git commit -m 'Add new feature'`  
-4. **Push to the branch:** `git push origin feature/new-feature`  
-5. **Open a Pull Request`
-
-## 📜 License
-
-**JCLi** is licensed under the [GNU General Public License (GPL)](https://www.gnu.org/licenses/gpl-3.0.en.html).  
-Feel free to use, modify, and distribute under the terms of the GPL.
-
-## 🙌 Acknowledgments
-
-- Inspired by IBM’s Job Control Language (JCL)  
-- Built with Python, Linux, and a lot of 💡
+- Architecture assessment and target design: [`docs/ARCHITECTURE.MD`](/Users/ty/Documents/GitHub/JCLi/docs/ARCHITECTURE.MD)
+- User manual: [`docs/USER_MANUAL.md`](/Users/ty/Documents/GitHub/JCLi/docs/USER_MANUAL.md)
+- Roadmap: [`docs/ROADMAP.md`](/Users/ty/Documents/GitHub/JCLi/docs/ROADMAP.md)

@@ -1,0 +1,5 @@
+{"level": "INFO", "message": "Daemon started with pid=817 recovered=0.", "payload": {}}
+{"level": "INFO", "message": "Daemon received signal 2; stopping.", "payload": {}}
+{"level": "INFO", "message": "Daemon stopping gracefully.", "payload": {}}
+{"level": "INFO", "message": "Daemon started with pid=827 recovered=0.", "payload": {}}
+{"level": "ERROR", "message": "Step STEP1 for job 1 failed before launch: No closing quotation", "payload": {}}

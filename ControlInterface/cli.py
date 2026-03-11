@@ -1,19 +1,12 @@
-from ControlInterface.command_handler import CommandHandler
-from ControlInterface.interactive_shell import InteractiveShell
+from jcli.cli import main as cli_main
+
 
 class JCLiControlInterface:
-    def __init__(self):
-        self.command_handler = CommandHandler()
-        self.shell = InteractiveShell(self.command_handler)
+    """Compatibility shim for the original interactive entry point."""
 
     def start(self):
-        """
-        Starts the JCLi Control Interface.
-        """
-        print("$JCLC Welcome to JCLi!")
-        print("Enter 'HELP' to see available commands.")
-        self.shell.run()
+        return cli_main()
+
 
 if __name__ == "__main__":
-    interface = JCLiControlInterface()
-    interface.start()
+    raise SystemExit(cli_main())

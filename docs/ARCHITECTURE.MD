@@ -1,182 +1,89 @@
+# JCLi Architecture
 
-# 🏗️ JCLi Architecture Documentation
+## Current Assessment
 
-Welcome to the **JCLi Architecture Guide**. This document outlines the design, core components, and data flow of JCLi, a job control subsystem for Linux inspired by IBM’s Job Control Language (JCL).
+The original codebase established the right conceptual modules, but several important boundaries were only nominal:
 
----
+- The control interface, daemon, scheduler, and executor communicated through in-memory objects only, so job state vanished on process exit.
+- Parsing and validation were split into files, but parsing was largely string matching without structured error reporting or a normalized step model.
+- Queueing was heap-based but tied to process memory, with no recovery path after daemon restart.
+- Job lifecycle and execution logic overlapped, and execution was mostly direct `subprocess.run` calls without durable step telemetry.
+- Logging existed, but each layer wrote ad hoc text files instead of using a consistent system/job/step logging strategy.
 
-## 🚀 Overview
+Useful pieces that were preserved in spirit:
 
-JCLi is a modular job control system that allows users to define, schedule, and manage jobs using JCL-like scripts. The system consists of key components:
+- The JCL-like script surface: `JOB`, `EXEC`, and `DD`
+- Class-based queue semantics, especially hold behavior via `CLASS=H`
+- The modular intent of control plane, interpreter, daemon, executor, and logging
 
-- **Control Interface (CLI)**: User-facing command-line interface for managing jobs.
-- **Daemon**: Background process that handles job scheduling, lifecycle management, and execution.
-- **Interpreter**: Parses and validates JCLi scripts.
-- **Scheduler**: Manages job priorities and execution order.
-- **Executor**: Executes jobs as shell commands or scripts.
-- **Queue Interface**: Interactive menu for managing queued jobs.
-- **Logging**: Handles job output, event logs, and error tracking.
+## Target Architecture
 
----
+JCLi now centers on a single package with explicit boundaries:
 
-## 📦 High-Level Architecture
-
-```
-+---------------------------+
-|      Control Interface    |
-|  (JCLi Command-Line Tool) |
-+-------------+-------------+
-              |
-              v
-+-------------+-------------+
-|          Daemon           |
-|  - Job Lifecycle Manager  |
-|  - Scheduler              |
-|  - Held Job Handling      |
-+-------------+-------------+
-              |
-      +-------+--------+
-      |                |
-+-----+-----+    +-----+-----+
-| Interpreter |  |  Executor  |
-|  (Parses    |  |  (Runs     |
-|  JCLi Files)|  |  Jobs)     |
-+-------------+  +-----------+
-              |
-      +-------+--------+
-      |    Logging     |
-      +----------------+
+```text
+CLI / Control Plane
+  -> Parser / Validator
+  -> Persistence Store (SQLite)
+  -> Scheduler
+  -> Daemon
+  -> Executor
+  -> Logging / Observability
 ```
 
----
+### Control Plane
 
-## 🔍 Core Components
+- `jcli.cli`
+- Owns operator commands such as `start`, `stop`, `submit`, `status`, `show-job`, `show-logs`, `cancel`, `hold`, and `release`
+- Talks to the daemon indirectly through SQLite state and the PID/stop-request files
 
-### 1️⃣ **Control Interface (CLI)**
+### Parser / Interpreter
 
-- **Files:** `ControlInterface/cli.py`, `command_handler.py`
-- Provides the user-facing command-line interface.
-- Accepts commands like `SUBMIT`, `STATUS`, `QUEUE`, `EXIT`.
-- Delegates commands to the Daemon.
+- `jcli.parser`
+- Converts `.jcli` text into normalized `JobDefinition`, `StepDefinition`, and `DDStatement` models
+- Returns structured `ValidationError` instances instead of loose strings
+- Validates supported `JOB`, `EXEC`, and `DD` constructs while leaving room for future dependency and retry extensions
 
----
+### Persistence / State
 
-### 2️⃣ **Daemon**
+- `jcli.store`
+- SQLite is the system of record for jobs, steps, daemon state, and operator events
+- Job states are canonicalized to:
+  - `SUBMITTED`
+  - `QUEUED`
+  - `RUNNING`
+  - `SUCCEEDED`
+  - `FAILED`
+  - `CANCELLED`
+  - `HELD`
+- Restart recovery moves interrupted `RUNNING` work back to `QUEUED`
 
-- **Files:** `Daemon/daemon.py`, `scheduler.py`, `job_lifecycle.py`
-- The heart of JCLi—manages job queues, scheduling, and execution.
-- **Key Responsibilities:**
-  - Manages running and queued jobs.
-  - Handles job lifecycle states: `QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`, `HELD`.
-  - Supports Class H (held) jobs that require manual release.
+### Scheduler / Daemon
 
----
+- `jcli.scheduler` and `jcli.daemon`
+- Scheduler chooses dispatch order by class rank, numeric priority, then FIFO submission order
+- Daemon enforces a concurrency ceiling, maintains a PID lock, handles stop requests, and rehydrates the queue from SQLite on startup
+- The database schema already includes hooks for future dependency and retry semantics
 
-### 3️⃣ **Interpreter**
+### Executor / Runtime
 
-- **Files:** `Interpreter/parser.py`, `validator.py`
-- Parses JCLi scripts and validates their syntax.
-- Extracts job details like name, priority, user, and execution steps.
+- `jcli.executor`
+- Executes each step independently, captures stdout/stderr, return codes, and timing metadata
+- Updates step and job state in the persistent store as work progresses
+- Stops job execution on the first failing step, which matches classic batch behavior
 
----
+### Logging / Observability
 
-### 4️⃣ **Scheduler**
+- `jcli.logging`
+- Separates:
+  - system log
+  - error log
+  - job log
+  - step stdout/stderr logs
+- Adds JSONL sidecars for machine-readable event consumption where useful
 
-- **Files:** `Daemon/scheduler.py`, `priority_manager.py`
-- Uses a priority queue to schedule jobs based on class (`A`, `B`, `C`, `H`) and priority (`1-10`).
-- Held jobs (`CLASS=H`) are managed separately and only executed after manual release.
+## Architectural Decisions
 
----
-
-### 5️⃣ **Executor**
-
-- **Files:** `Executor/executor.py`, `shell_executor.py`, `binary_executor.py`
-- Executes jobs as shell commands, scripts, or binaries.
-- Captures standard output and error logs.
-
----
-
-### 6️⃣ **Queue Interface**
-
-- **Files:** `QueueInterface/queue_menu.py`, `queue_commands.py`
-- Interactive interface for managing queued jobs.
-- Supports commands:
-  - `R <JOBNAME>`: Restart
-  - `C <JOBNAME>`: Cancel
-  - `F <JOBNAME>`: Force execution
-  - `RELEASE <JOBNAME>`: Release held jobs
-
----
-
-### 7️⃣ **Logging**
-
-- **Files:** `Logging/logger.py`, `job_logger.py`, `event_logger.py`
-- Logs job outputs (`SYSOUT` equivalent), statuses, and system events.
-- Error handling and audit trails are stored in log files.
-
----
-
-## 🔄 Job Lifecycle
-
-1. **Job Submission** (`SUBMIT my_job.jcli`)
-   - CLI sends the script to the Interpreter.
-   - Interpreter parses and validates the job.
-
-2. **Job Queuing**
-   - Daemon receives the job.
-   - Class H jobs are marked as `HELD` until released.
-   - Other jobs are queued based on priority.
-
-3. **Job Execution**
-   - Scheduler picks the next job based on priority.
-   - Executor runs the job.
-
-4. **Job Completion**
-   - Job output and status are logged.
-   - Final status: `COMPLETED`, `FAILED`, or `CANCELLED`.
-
----
-
-## 🗂️ Folder Structure
-
-```
-JCLi/
-├── ControlInterface/
-│   ├── cli.py
-│   └── command_handler.py
-├── Daemon/
-│   ├── daemon.py
-│   ├── scheduler.py
-│   ├── job_lifecycle.py
-│   └── priority_manager.py
-├── Interpreter/
-│   ├── parser.py
-│   └── validator.py
-├── Executor/
-│   ├── executor.py
-│   └── shell_executor.py
-├── QueueInterface/
-│   ├── queue_menu.py
-│   └── queue_commands.py
-├── Logging/
-│   ├── logger.py
-│   └── event_logger.py
-└── logs/
-    ├── jobs/
-    └── system/
-```
-
----
-
-## 🔗 Future Enhancements
-
-- **Recurring Job Scheduling** (like cron jobs).
-- **Job Dependencies** (e.g., Job B starts after Job A completes).
-- **Resource Management** (CPU, memory constraints).
-- **Web Interface** for job management.
-
----
-
-## 🙌 Contributing
-
-See `CONTRIBUTING.md` for guidelines on how to contribute to JCLi.
+- SQLite was chosen over JSON files because it gives durable state, transactional updates, and straightforward query semantics without adding infrastructure.
+- The daemon and CLI are intentionally decoupled through the store so the control plane can remain simple and scriptable.
+- The parser supports a focused subset of JCL rather than pretending to be full JCL; this keeps the internals clean while preserving the mainframe flavor.
+- Step-level state is persisted separately from job state so future features like retries, dependencies, and remote workers have a stable foundation.

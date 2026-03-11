@@ -1,0 +1,8 @@
+{"message": "Job DATAPROC entered RUNNING.", "payload": {}}
+{"message": "Starting step STEP1: /usr/bin/echo 'Extracting data...'", "payload": {}}
+{"message": "Finished step STEP1 with rc=0 state=SUCCEEDED.", "payload": {"duration_seconds": 0.00238}}
+{"message": "Starting step STEP2: /usr/bin/echo 'Transforming data...'", "payload": {}}
+{"message": "Finished step STEP2 with rc=0 state=SUCCEEDED.", "payload": {"duration_seconds": 0.000891}}
+{"message": "Starting step STEP3: /usr/bin/echo 'Loading data into database...'", "payload": {}}
+{"message": "Finished step STEP3 with rc=0 state=SUCCEEDED.", "payload": {"duration_seconds": 0.000673}}
+{"message": "Job DATAPROC completed with state SUCCEEDED.", "payload": {}}

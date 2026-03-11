@@ -1,10 +1,9 @@
-from ControlInterface.cli import JCLiControlInterface
+from jcli.cli import main as cli_main
 
 
 def main():
-    interface = JCLiControlInterface()
-    interface.start()
+    return cli_main()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

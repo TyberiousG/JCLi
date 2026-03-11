@@ -1,0 +1,8 @@
+{"message": "Job MULTISTEP entered RUNNING.", "payload": {}}
+{"message": "Starting step STEP1: /usr/bin/echo 'Step 1: Initializing Process'", "payload": {}}
+{"message": "Finished step STEP1 with rc=0 state=SUCCEEDED.", "payload": {"duration_seconds": 0.002329}}
+{"message": "Starting step STEP2: /usr/bin/echo 'Step 2: Processing Data'", "payload": {}}
+{"message": "Finished step STEP2 with rc=0 state=SUCCEEDED.", "payload": {"duration_seconds": 0.000993}}
+{"message": "Starting step STEP3: /usr/bin/echo 'Step 3: Finalizing Job'", "payload": {}}
+{"message": "Finished step STEP3 with rc=0 state=SUCCEEDED.", "payload": {"duration_seconds": 0.000661}}
+{"message": "Job MULTISTEP completed with state SUCCEEDED.", "payload": {}}

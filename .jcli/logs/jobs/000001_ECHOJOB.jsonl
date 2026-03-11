@@ -1,0 +1,4 @@
+{"message": "Job ECHOJOB entered RUNNING.", "payload": {}}
+{"message": "Starting step STEP1: /usr/bin/echo 'Hello", "payload": {}}
+{"message": "Finished step STEP1 with rc=127 state=FAILED.", "payload": {"duration_seconds": 3.6e-05}}
+{"message": "Job ECHOJOB completed with state FAILED.", "payload": {}}
