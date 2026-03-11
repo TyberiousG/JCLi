@@ -41,5 +41,4 @@ class JobQueueDaemon:
                     print(f"$JCLD Dispatching job: {job.name}")
                     self.job_lifecycle.update_status(job, "RUNNING")
                     self.job_lifecycle.execute_job(job)
-                    self.job_lifecycle.update_status(job, "COMPLETED")
             time.sleep(1)  # Prevents CPU overuse in the loop

@@ -10,15 +10,19 @@ class JCLValidator:
             errors.append("Job name is missing.")
 
         # Validate job class
-        if job.job_class not in ['A', 'B', 'C', 'H']:
-            errors.append(f"Invalid job class '{job.job_class}'. Must be A, B, C, or H.")
+        if job.job_class not in ['A', 'B', 'C', 'D', 'E', 'H']:
+            errors.append(f"Invalid job class '{job.job_class}'. Must be A, B, C, D, E, or H.")
 
         # Validate priority
         if not isinstance(job.priority, int) or not (1 <= job.priority <= 10):
             errors.append(f"Priority '{job.priority}' is invalid. Must be between 1 and 10.")
 
         # Validate program path
-        if not job.program:
+        if job.steps:
+            for step in job.steps:
+                if not step.get("program"):
+                    errors.append(f"Step '{step.get('name', 'UNKNOWN')}' is missing a program (PGM).")
+        elif not job.program:
             errors.append("Program (PGM) is missing.")
 
         # Additional checks can be added here

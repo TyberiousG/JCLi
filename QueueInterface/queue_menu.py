@@ -13,20 +13,19 @@ class QueueMenu:
         print("="*50)
 
         if not self.daemon.scheduler.job_queue and not self.daemon.held_jobs:
-            print("FILE NOT FOUND.")
+            print("No jobs are currently queued.")
         else:
             # Display jobs in the scheduler queue
-            for _, job in self.daemon.scheduler.job_queue:
+            for job in self.daemon.scheduler.list_jobs():
                 status = self.daemon.job_lifecycle.job_status.get(job.name, "QUEUED")
                 print(f"JOB${job.name} | Class: {job.job_class} | Priority: {job.priority} | Status: {status} | User: {job.user}")
-
-            
             for job in self.daemon.held_jobs:
                 print(f"JOB${job.name} | Class: {job.job_class} | Priority: {job.priority} | Status: HELD | User: {job.user}")
-                print("="*50)
-                print("Commands: R C F")
-                print("Type 'EXIT' to return to the main menu.")
-                print("="*50)
+
+            print("="*50)
+            print("Commands: R C F RL <job>")
+            print("Type 'EXIT' to return to the main menu.")
+            print("="*50)
 
     def run(self):
         self.running = True  # Reset running flag every time the menu is launched
